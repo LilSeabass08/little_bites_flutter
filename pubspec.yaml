@@ -1,4 +1,4 @@
-name: baby_food_nutrition_app
+name: little_bites
 description: "A cross-platform mobile application that empowers parents to make informed decisions about baby food nutrition."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -38,10 +38,10 @@ dependencies:
 
   # The following adds the permissions handler plugin.
   #this will be used to request permissions for the app to access the camera and storage.
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   
   # Barcode scanning functionality
-  mobile_scanner: ^3.5.6
+  mobile_scanner: ^7.0.1
 
 dev_dependencies:
   flutter_test:
