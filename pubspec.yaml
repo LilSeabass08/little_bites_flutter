@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.1.0
 
+  # The following adds the permissions handler plugin.
+  #this will be used to request permissions for the app to access the camera and storage.
+  permission_handler: ^11.3.1
+  
+  # Barcode scanning functionality
+  mobile_scanner: ^3.5.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
