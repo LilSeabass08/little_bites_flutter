@@ -15,6 +15,8 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
   bool isScanning = false;
   bool isTorchOn = false;
   CameraFacing cameraFacing = CameraFacing.back;
+  String? scannedBarcode;
+  bool isScannerActive = false;
 
   @override
   void initState() {
@@ -78,6 +80,8 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
       if (barcode.rawValue != null) {
         setState(() {
           isScanning = false;
+          scannedBarcode = barcode.rawValue;
+          isScannerActive = false;
         });
 
         _showBarcodeResult(barcode.rawValue!);
@@ -107,6 +111,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   isScanning = true;
+                  isScannerActive = true;
                 });
               },
               child: const Text('Scan Another'),
@@ -166,6 +171,20 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
     }
   }
 
+  void _startScanning() {
+    setState(() {
+      isScannerActive = true;
+      isScanning = true;
+    });
+  }
+
+  void _stopScanning() {
+    setState(() {
+      isScannerActive = false;
+      isScanning = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!isCameraPermissionGranted) {
@@ -210,41 +229,171 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
         title: const Text('Scan Barcode'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(
-            icon: Icon(isTorchOn ? Icons.flash_on : Icons.flash_off),
-            onPressed: _toggleTorch,
-          ),
-          IconButton(
-            icon: Icon(
-              cameraFacing == CameraFacing.front
-                  ? Icons.camera_front
-                  : Icons.camera_rear,
+          if (isScannerActive) ...[
+            IconButton(
+              icon: Icon(isTorchOn ? Icons.flash_on : Icons.flash_off),
+              onPressed: _toggleTorch,
             ),
-            onPressed: _switchCamera,
-          ),
+            IconButton(
+              icon: Icon(
+                cameraFacing == CameraFacing.front
+                    ? Icons.camera_front
+                    : Icons.camera_rear,
+              ),
+              onPressed: _switchCamera,
+            ),
+          ],
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          MobileScanner(controller: cameraController, onDetect: _onDetect),
-          Positioned(
-            top: 20,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Position the barcode within the frame',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+          // Prominent Scan Button
+          if (!isScannerActive) ...[
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Display scanned barcode result
+                    if (scannedBarcode != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          border: Border.all(color: Colors.green.shade200),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 48,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Barcode Scanned Successfully!',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              scannedBarcode!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'monospace',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ] else ...[
+                      const Icon(
+                        Icons.qr_code_scanner,
+                        size: 64,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Ready to Scan Barcode',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Tap the button below to start scanning',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // Prominent Scan Button
+                    SizedBox(
+                      width: 200,
+                      height: 60,
+                      child: ElevatedButton.icon(
+                        onPressed: _startScanning,
+                        icon: const Icon(Icons.qr_code_scanner, size: 24),
+                        label: const Text(
+                          'Scan Barcode',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ] else ...[
+            // Scanner View
+            Expanded(
+              child: Stack(
+                children: [
+                  MobileScanner(
+                    controller: cameraController,
+                    onDetect: _onDetect,
+                  ),
+                  Positioned(
+                    top: 20,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Position the barcode within the frame',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                  // Stop scanning button
+                  Positioned(
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: ElevatedButton.icon(
+                        onPressed: _stopScanning,
+                        icon: const Icon(Icons.stop),
+                        label: const Text('Stop Scanning'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
