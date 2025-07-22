@@ -46,6 +46,8 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
     }
   }
 
+
+
   void _showPermissionDeniedDialog() {
     showDialog(
       context: context,
